@@ -17,6 +17,8 @@ from src.forecasting import (
 
 ROOT = Path(__file__).parent
 DATA_PATH = ROOT / "data" / "HHS_Unaccompanied_Alien_Children_Program.csv"
+RESEARCH_PATH = ROOT / "reports" / "research_paper.md"
+SUMMARY_PATH = ROOT / "reports" / "executive_summary.md"
 
 
 st.set_page_config(
@@ -29,6 +31,11 @@ st.set_page_config(
 @st.cache_data(show_spinner=False)
 def cached_load(fill_method: str) -> pd.DataFrame:
     return load_uac_data(DATA_PATH, fill_method)
+
+
+@st.cache_data(show_spinner=False)
+def read_report(path: Path) -> str:
+    return path.read_text(encoding="utf-8")
 
 
 st.title("Predictive Forecasting of Care Load and Placement Demand")
@@ -79,7 +86,7 @@ metric_cols[2].metric("Surge Lead Time", f"{kpis['Surge Lead Time']} days")
 metric_cols[3].metric("Capacity Breach Probability", f"{kpis['Capacity Breach Probability']:.0%}")
 metric_cols[4].metric("Forecast Stability Index", f"{kpis['Forecast Stability Index']:.1f}")
 
-tabs = st.tabs(["Care Load Forecast", "Discharge Demand", "Model Comparison", "Data and Signals"])
+tabs = st.tabs(["Care Load Forecast", "Discharge Demand", "Model Comparison", "Data and Signals", "Reports"])
 
 with tabs[0]:
     chart_df = df.tail(180)
@@ -149,6 +156,34 @@ with tabs[3]:
         fig.add_hline(y=0, line_color="#666", line_width=1)
         fig.update_layout(height=420, hovermode="x unified")
         st.plotly_chart(fig, width="stretch")
+
+with tabs[4]:
+    st.subheader("Published Project Reports")
+    summary_text = read_report(SUMMARY_PATH)
+    research_text = read_report(RESEARCH_PATH)
+
+    report_choice = st.radio(
+        "Report",
+        ["Executive Summary", "Research Paper"],
+        horizontal=True,
+    )
+
+    if report_choice == "Executive Summary":
+        st.markdown(summary_text)
+        st.download_button(
+            "Download executive summary",
+            summary_text,
+            file_name="uac_forecasting_executive_summary.md",
+            mime="text/markdown",
+        )
+    else:
+        st.markdown(research_text)
+        st.download_button(
+            "Download research paper",
+            research_text,
+            file_name="uac_forecasting_research_paper.md",
+            mime="text/markdown",
+        )
 
 st.divider()
 st.caption(
