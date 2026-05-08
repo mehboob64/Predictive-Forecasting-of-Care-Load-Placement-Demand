@@ -1,0 +1,8 @@
+services:
+  - type: web
+    name: uac-care-load-dashboard
+    runtime: python
+    plan: starter
+    buildCommand: pip install -r requirements.txt
+    startCommand: streamlit run app.py --server.address=0.0.0.0 --server.port=$PORT --server.fileWatcherType=none --browser.gatherUsageStats=false
+    autoDeploy: true
